@@ -1,0 +1,13 @@
+console pico 6 3
+
+#Start
+  48
+   2,,R,J
+   2,,R
+   4,,R,J
+   8,,R
+   2,,R,U,X
+  18,,R
+   2,,R,U,X
+  34,,R
+3012
