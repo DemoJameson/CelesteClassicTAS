@@ -1,0 +1,30 @@
+console pico 0 1
+
+#Start
+Set Pico8Fixer.Seed 2
+  56
+   2,R,X
+  12,R
+   2,R,J
+   6,R
+   2,R,X
+  32,R
+  24,L
+   4
+   2,U,X
+  22,L
+   2,U,X
+  12
+   4,R
+   2,J
+   2,L,D,X
+   8
+   2,J
+  10
+   2,U,X
+  14
+   4,R
+   2,J
+   8
+   2,J
+   6

@@ -1,7 +1,8 @@
 console pico 2 0
+   2
 
 #Start
-  52
+  50
    2,L
    2,R,D,X
   14

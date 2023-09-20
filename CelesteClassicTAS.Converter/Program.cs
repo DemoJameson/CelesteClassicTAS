@@ -5,14 +5,22 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace CelesteClassicTAS;
+namespace CelesteClassicTAS.Converter;
 
 public static class Program {
-    private static readonly Regex randomSeedRegex = new(@"\[[\d\.,]*\]", RegexOptions.Compiled);
+    private static readonly Regex randomSeedRegex = new(@"\[[\d.,-]*\]", RegexOptions.Compiled);
+    private static StreamWriter? streamWriter;
 
     public static void Main(string[] args) {
+        try {
+            File.Delete("log.txt");
+            streamWriter = File.AppendText("log.txt");
+        } catch (Exception e) {
+            Log(e.ToString());
+        }
+        
         if (args.Length == 0) {
-            Console.WriteLine("Please drag and drop pico 8 tas file or folder");
+            Log("Please drag and drop pico 8 tas file or folder");
             return;
         }
 
@@ -24,6 +32,8 @@ public static class Program {
         } else {
             ConvertFile(path);
         }
+        
+        streamWriter?.Dispose();
     }
 
     private static void ConvertFolder(string folderPath) {
@@ -41,7 +51,7 @@ public static class Program {
     }
 
     private static void ConvertFile(string filePath) {
-        Console.WriteLine($"Converting {filePath} -> {filePath}");
+        Log($"Converting {filePath} -> {filePath}");
 
         List<string> result = new();
 
@@ -62,12 +72,7 @@ public static class Program {
             ParseLine(i == linesCount - 1 ? null : allLines[i + 1], out string? nextAction);
 
             if (action != nextAction) {
-                if (action.Length == 0) {
-                    result.Add(frames.ToString().PadLeft(4));
-                } else {
-                    result.Add(frames.ToString().PadLeft(4) + "," + action);
-                }
-
+                result.Add(frames.ToString().PadLeft(4) + action);
                 frames = 2;
             } else {
                 frames += 2;
@@ -80,7 +85,7 @@ public static class Program {
     private static string? GetLoadCommand(string filePath) {
         string fileName = Path.GetFileNameWithoutExtension(filePath).ToUpper();
         if (int.TryParse(fileName.Replace("TAS", ""), out int index)) {
-            string? room = $"{(index - 1) % 8} {(index - 1) / 8}";
+            string room = $"{(index - 1) % 8} {(index - 1) / 8}";
 
             int frames = index switch {
                 1 => 212,
@@ -88,7 +93,7 @@ public static class Program {
                 4 => 56,
                 5 => 60,
                 6 => 60,
-                7 => 46,
+                7 => 48,
                 9 => 56,
                 11 => 48,
                 16 => 56,
@@ -105,9 +110,13 @@ public static class Program {
                 _ => 52
             };
 
-            string waitFrames = index == 7 ? "   2\n" : "";
+            string offsetFrames = index is 3 or 7 or 8 or 25 ? "   2\n" : "";
+            if (offsetFrames.Length > 0) {
+                frames -= 2;
+            }
+
             string titleAction = index == 1 ? "   2\n   2,J,X\n" : "";
-            return $"console pico {room}\n{waitFrames}\n#Start\n{titleAction}{frames.ToString(),4}";
+            return $"console pico {room}\n{offsetFrames}\n#Start\n{titleAction}{frames.ToString(),4}";
         }
 
         return null;
@@ -153,6 +162,12 @@ public static class Program {
         }
 
         return sb.ToString();
+    }
+
+    private static void Log(string message) {
+        Console.WriteLine(message);
+        streamWriter?.WriteLine(message);
+        streamWriter?.Flush();
     }
 }
 
